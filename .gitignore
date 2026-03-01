@@ -1,0 +1,50 @@
+# Environment variables
+.env
+
+# Python virtual environment
+.venv/
+venv/
+
+# Monitoring data
+monitoring/prometheus_data/
+monitoring/grafana_data/
+
+# MinIO
+minio/minio-data/
+minio/certs/
+
+# Trino
+trino/data/
+
+# Generic data folder
+data/
+
+# Postgres volumes
+postgres-metastore-data/
+postgres-airflow-data/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+./airlfow/data
+./airflow/logs
+./airflow/plugins
+
+# All logs
+logs/
+*.log
+airflow/logs/
+
+notebooks/.ipynb_checkpoints
+notebooks/.Trash-185
+
+# Jupyter checkpoints (ignore everywhere)
+.ipynb_checkpoints/
+
+# OS trash folders
+.Trash-*/
