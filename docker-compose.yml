@@ -594,8 +594,10 @@ services:
     environment:
       MINIO_ROOT_USER: ${AWS_S3_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${AWS_S3_SECRET_ACCESS_KEY}
+      MINIO_CONSOLE_PORT: 9091
+      MINIO_CONSOLE_USER: ${MINIO_CONSOLE_USER}
+      MINIO_CONSOLE_PASSWORD: ${MINIO_CONSOLE_PASSWORD}
       MINIO_DOMAIN: minio
-      MINIO_SERVER_URL: http://minio:9000
       MINIO_REGION_NAME: us-east-1
       MINIO_BROWSER: "on"
       MINIO_CACHE: "on"
@@ -610,6 +612,7 @@ services:
       - "9001:9001"
     volumes:
       - ./minio/minio-data:/data
+      - ./minio/certs:/root/.minio/certs
     networks:
       - lakehouse_prod_net
     restart: unless-stopped
@@ -631,8 +634,13 @@ services:
       mc mb minio-prod/lakehouse-prod-bucket --ignore-existing &&
       mc mb minio-prod/lakehouse-dev-bucket --ignore-existing &&
       mc mb minio-prod/lakehouse-test-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-gold-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-silver-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-bronze-bucket --ignore-existing &&
+      mc mb minio-prod/datalake-landing --ignore-existing &&
       exit 0
       "
+
     networks:
       - lakehouse_prod_net
 
