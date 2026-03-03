@@ -1,3 +1,6 @@
+numpy==1.26.4
+pandas==2.1.4
+pyarrow==17.0.0
 pyiceberg[pyarrow,duckdb,pandas]==0.9.1
 matplotlib==3.9.4
 duckdb-engine==0.17.0
@@ -17,3 +20,4 @@ boto3==1.28.39
 airflow-provider-great-expectations
 apache-airflow-providers-common-sql
 apache-airflow-providers-apache-spark
+lxml

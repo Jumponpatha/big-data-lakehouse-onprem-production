@@ -1,4 +1,4 @@
-FROM apache/spark:3.5.6
+FROM apache/spark:3.5.6-java17-python3
 
 USER root
 
@@ -15,11 +15,17 @@ ARG AWS_SDK_V1_VERSION=1.12.262
 # System dependencies (minimal)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        openjdk-17-jdk \
+        software-properties-common \
         curl \
         procps \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+        openjdk-17-jdk && \
+    add-apt-repository ppa:deadsnakes/ppa -y && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3.11 \
+        python3.11-venv && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 

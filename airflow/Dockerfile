@@ -35,7 +35,13 @@ USER airflow
 
 # Python dependencies
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --force-reinstall \
+        numpy==1.26.4 \
+        pandas==2.1.4 \
+        pyarrow==17.0.0 && \
+    pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY dags/ /opt/airflow/dags
 

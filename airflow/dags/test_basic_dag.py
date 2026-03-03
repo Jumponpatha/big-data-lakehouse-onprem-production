@@ -1,6 +1,7 @@
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.sdk import task
+
 with DAG(
     dag_id="test_basic_dag",
     schedule="@daily",
