@@ -597,11 +597,10 @@ services:
       MINIO_CONSOLE_PORT: 9091
       MINIO_CONSOLE_USER: ${MINIO_CONSOLE_USER}
       MINIO_CONSOLE_PASSWORD: ${MINIO_CONSOLE_PASSWORD}
-      MINIO_DOMAIN: minio
       MINIO_REGION_NAME: us-east-1
       MINIO_BROWSER: "on"
       MINIO_CACHE: "on"
-      MINIO_CACHE_DRIVES: /mnt/drive1,/mnt/drive2
+      MINIO_CACHE_DRIVES: /mnt/drive1, /mnt/drive2
       MINIO_CACHE_QUOTA: 80 # 80% of the drive will be used for caching
       MINIO_CACHE_AFTER: 1 # Object will be cached after the first request to it
       MINIO_CACHE_WATERMARK_LOW: 70 # Least accessed objects will be erased after the cache disk reaches the 70% watermark
