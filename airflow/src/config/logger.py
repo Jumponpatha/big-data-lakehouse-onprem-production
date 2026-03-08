@@ -19,4 +19,6 @@ def get_logger(name: str) -> logging.Logger:
 
         logger.addHandler(handler)
 
+        # Prevent duplicate logs
+        logger.propagate = False
     return logger

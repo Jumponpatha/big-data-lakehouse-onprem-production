@@ -50,11 +50,13 @@ def extract_sp500_profile():
     '''Extracts the profile data for all S&P 500 companies.'''
     sp500_list = get_sp500_list()
     data_list = []
+    max_workers = 10
 
     logger.info("Start extracting profile data for S&P 500 companies.")
     # Fetch profiles in parallel using ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers) as executor:
         results = list(executor.map(fetch_profile, sp500_list))
+
     logger.info(f"Fetching profiles using {max_workers} threads")
 
     data_list = [result for result in results if result is not None]
