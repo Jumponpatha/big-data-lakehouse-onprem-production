@@ -31,13 +31,6 @@ try:
     spark.sparkContext.setLogLevel("ERROR")
     print("SparkSession created successfully!")
 
-    # Use correct catalog reference
-    # spark.sql("""
-    #     SELECT *
-    #     FROM lakehouse_prod.nyc.taxis_02
-    #     LIMIT 10
-    # """).show()
-
     spark.sql("USE lakehouse_prod").show()
     spark.sql("SHOW CATALOGS;").show()
     csv_path = "s3a://datalake-landing/breweries.csv"
