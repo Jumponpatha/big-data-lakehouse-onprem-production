@@ -2,7 +2,7 @@ import boto3
 from io import BytesIO, StringIO
 from datetime import datetime
 from airflow.sdk.bases.hook import BaseHook
-from utils.config.logger import get_logger
+from src.config.logger import get_logger
 from botocore.exceptions import NoCredentialsError
 
 # Initialize logger

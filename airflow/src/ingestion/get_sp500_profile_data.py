@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 import yfinance as yf
 from io import StringIO
-from utils.config.logger import get_logger
+from src.config.logger import get_logger
 from concurrent.futures import ThreadPoolExecutor
 
 # Initialize logger

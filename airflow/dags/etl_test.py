@@ -11,6 +11,6 @@ with DAG(
 
     spark_job = SparkSubmitOperator(
         task_id="run_spark_etl",
-        application="/opt/airflow/utils/etl_jobs.py",
+        application="/opt/airflow/src/etl_jobs.py",
         conn_id="spark_default",
     )

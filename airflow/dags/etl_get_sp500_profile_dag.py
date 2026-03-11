@@ -5,11 +5,8 @@ from zoneinfo import ZoneInfo
 from io import BytesIO, StringIO
 from datetime import datetime, timedelta
 from airflow.sdk import task, dag
-import boto3
-from botocore.exceptions import NoCredentialsError
-from pyspark import SparkContext
-from pyspark.sql import SparkSession
-from pyspark import SparkConf
+from src.spark.spark_session import get_spark_session
+
 
 # Default arguments for the DAG
 default_args = {
@@ -36,5 +33,11 @@ default_args = {
 
 def etl_get_sp500_profile_process_dag():
 
+    @task(task_id="get_sp500_profile_task")
+    def get_sp500_profile():
+        # Get the list of S&P 500 companies
+        sp500 = yf.Ticker("^GSPC")
+        sp500_profile = sp500.info
+        return sp500_profile
 
 etl_get_sp500_profile_process_dag()

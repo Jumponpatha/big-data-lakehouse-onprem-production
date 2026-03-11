@@ -93,6 +93,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-./airflow}/data:/opt/airflow/data
     - ${AIRFLOW_PROJ_DIR:-./airflow}/tests:/opt/airflow/tests
+    - ${AIRFLOW_PROJ_DIR:-./airflow}/gx:/opt/airflow/gx
     - ${AIRFLOW_PROJ_DIR:-./airflow}/src:/opt/airflow/src
     - ${AIRFLOW_PROJ_DIR:-./spark}/conf:/opt/spark/conf
   user: "${AIRFLOW_UID}:${AIRFLOW_GID}"
@@ -692,16 +693,16 @@ services:
       - lakehouse_prod_net
     restart: unless-stopped
 
-  trino-worker:
-    image: trinodb/trino:410
-    container_name: trino-worker
-    ports:
-      - "8089:8080"
-    volumes:
-      - ./trino/worker/etc:/etc/trino
-    networks:
-      - lakehouse_prod_net
-    restart: unless-stopped
+  # trino-worker:
+  #   image: trinodb/trino:410
+  #   container_name: trino-worker
+  #   ports:
+  #     - "8089:8080"
+  #   volumes:
+  #     - ./trino/worker/etc:/etc/trino
+  #   networks:
+  #     - lakehouse_prod_net
+  #   restart: unless-stopped
 
 networks:
   lakehouse_prod_net:

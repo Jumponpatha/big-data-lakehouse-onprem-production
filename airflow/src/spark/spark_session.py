@@ -1,7 +1,7 @@
 import os
 from pyspark.sql import SparkSession
-from utils.config.logger import get_logger
-from utils.config.settings import settings
+from src.config.logger import get_logger
+from src.config.settings import settings
 
 # Initialize logger
 logger = get_logger(__name__)
