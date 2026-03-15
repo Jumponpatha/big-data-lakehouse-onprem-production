@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from airflow.sdk import task, dag
 from airflow.sdk.bases.hook import BaseHook
 from botocore.exceptions import NoCredentialsError
-from src.ingestion.get_sp500_profile_data import extract_sp500_profile
+from src.extract.get_sp500_profile_data import extract_sp500_profile
 from src.config.logger import get_logger
 
 # Initialize logger

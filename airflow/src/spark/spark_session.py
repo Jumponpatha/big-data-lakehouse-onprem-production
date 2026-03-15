@@ -37,14 +37,16 @@ def create_spark_session(app_name: str) -> SparkSession:
             .config("spark.hadoop.fs.s3a.path.style.access", s3_path_style_access)
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             .config("spark.hadoop.fs.s3a.connection.ssl.enabled", s3_ssl_enabled)
+            .config("spark.hadoop.fs.s3a.path.style.access", "true")
+            .config("spark.hadoop.aws.region", "us-east-1")
             .config("spark.sql.adaptive.enabled", "true")
             .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
             .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
             .config("spark.sql.shuffle.partitions", spark_number_partition_sql)
-            .config("spark.executor.instances", "4")
-            .config("spark.executor.cores", "2")
-            .config("spark.driver.memory", "4g")
-            .config("spark.executor.memory", "4g")
+            .config("spark.executor.instances", "3")
+            .config("spark.executor.cores", "1")
+            .config("spark.driver.memory", "1g")
+            .config("spark.executor.memory", "1g")
             # Scheduling Mode
             .config("spark.scheduler.mode", "FAIR") # Distribute resources fairly among jobs
             .enableHiveSupport()
@@ -57,5 +59,4 @@ def create_spark_session(app_name: str) -> SparkSession:
     except Exception as e:
         logger.error(f"Error creating SparkSession: {e}")
         raise
-
     return spark

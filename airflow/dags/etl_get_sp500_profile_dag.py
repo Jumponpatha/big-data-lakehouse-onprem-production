@@ -1,12 +1,16 @@
-import requests
-import pandas as pd
-import yfinance as yf
-from zoneinfo import ZoneInfo
-from io import BytesIO, StringIO
+import boto3
+from io import BytesIO
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from airflow.sdk import task, dag
-from src.spark.spark_session import get_spark_session
+from airflow.sdk.bases.hook import BaseHook
+from botocore.exceptions import NoCredentialsError
+from airflow.src.extract.get_sp500_profile_data import extract_sp500_profile
+from src.spark.spark_session import create_spark_session
+from src.config.logger import get_logger
 
+# Initialize logger
+logger = get_logger(__name__)
 
 # Default arguments for the DAG
 default_args = {
@@ -23,21 +27,96 @@ default_args = {
 
 # Define the DAG using the @dag decorator
 @dag(
-    dag_id="etl_get_sp500_profile_process_dag_dev",
+    dag_id="etl_sp500_profile_ingestion_landing_to_bronze_dag_dev",
     schedule="@daily",
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    tags=["ETL", "S&P 500", "S&P 500 Profile" , "Bronze", "Silver", "Gold"],
+    tags=["ETL", "S&P 500", "S&P 500 Profile" , "Bronze", "Landing"],
     default_args=default_args,
 )
 
-def etl_get_sp500_profile_process_dag():
+# Define the DAG function
+def etl_sp500_profile_ingestion_landing_to_bronze_dag():
 
-    @task(task_id="get_sp500_profile_task")
-    def get_sp500_profile():
-        # Get the list of S&P 500 companies
-        sp500 = yf.Ticker("^GSPC")
-        sp500_profile = sp500.info
-        return sp500_profile
+    # TASK 1: Extract S&P 500 profile data from source and add Ingested_Time column
+    @task(task_id="extract_sp500_profiles_task")
+    def extract_sp500_profiles():
+        logger.info("Starting extraction of S&P 500 profile data")
+        extracted_df = extract_sp500_profile()
+        ingested_time = datetime.now(ZoneInfo("Asia/Bangkok"))
+        extracted_df["Ingested_Time"] = ingested_time
+        logger.info("Finished extraction of S&P 500 profile data")
+        logger.info(f"Shape of extracted S&P 500 profile data: {extracted_df.shape}")
+        logger.info(f"Columns in extracted S&P 500 profile data: {extracted_df.columns}")
+        return extracted_df
 
-etl_get_sp500_profile_process_dag()
+    # TASK 2: Load the extracted S&P 500 profile data to local storage in CSV format
+    @task(task_id="load_sp500_profiles_to_s3_landing_task")
+    def load_sp500_profiles_to_s3_landing(df):
+        conn = BaseHook.get_connection("minio_s3")
+        extra = conn.extra_dejson
+        endpoint = extra.get("endpoint_url")
+
+        logger.info("Starting upload of S&P 500 profile data to S3")
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=endpoint,
+            aws_access_key_id=conn.login,
+            aws_secret_access_key=conn.password,
+            region_name="us-east-1"
+        )
+
+        logger.info("Converting S&P 500 profile data as Parquet format upload to S3 (Landing Zone)")
+        bucket_name = 'datalake-landing'
+        file_name = f"profiles/sp500_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
+        parquet_buffer = BytesIO()
+        df.to_parquet(parquet_buffer, index=False, engine="pyarrow")
+
+        # Upload the Parquet file to S3
+        try:
+            s3.put_object(Bucket=bucket_name, Key=file_name, Body=parquet_buffer.getvalue())
+            logger.info(f"Data uploaded to S3 bucket '{bucket_name}' with path '{file_name}'")
+        except NoCredentialsError:
+            logger.error("AWS credentials not found. Please configure your AWS credentials.")
+        logger.info("Finished upload of S&P 500 profile data to S3")
+
+    # TASK 3: Extract the S&P 500 profile data from the landing zone and load it to the bronze zone in the lakehouse
+    @task(task_id="extract_sp500_profile_landing_to_bronze_task")
+    def extract_sp500_profile_landing_to_bronze():
+        # Create Spark Session
+        spark = create_spark_session("Extract & Load S&P 500 Profile Data to Bronze Zone")
+        logger.info("Starting loading of S&P 500 profile data to bronze zone")
+
+        file_name = f"sp500_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
+        s3_path = f"s3a://datalake-landing/profiles/{file_name}"
+
+        catalog_name = "lakehouse_prod"
+        schema_name = "bronze_db"
+        table_name = "bronze_sp500_profiles"
+        bronze_directory = f"s3a://lakehouse-bronze-bucket/warehouse/{schema_name}/{table_name}/"
+
+        # Extract the S&P 500 profile data from the landing zone
+        logger.info(f"Extracting S&P 500 profile data from landing zone at: {s3_path}")
+        df = spark.read.parquet(s3_path, header=True, inferSchema=True)
+
+        try:
+            df.writeTo(f"{catalog_name}.{schema_name}.{table_name}") \
+                .tableProperty("location", bronze_directory) \
+                .createOrReplace()
+            logger.info(f"Successfully loaded '{schema_name}.{table_name}' data to bronze zone at {bronze_directory}")
+        except Exception as e:
+            logger.error(f"Error loading S&P 500 profile data to bronze zone: {e}")
+            raise
+
+        # Stop the SparkSession
+        spark.stop()
+        logger.info("Finished loading S&P 500 profile data to bronze zone")
+
+    # Define Airflow tasks
+    extract_sp500_profiles_task = extract_sp500_profiles()
+    load_sp500_profiles_to_s3_landing_task = load_sp500_profiles_to_s3_landing(extract_sp500_profiles_task)
+    extract_sp500_profile_landing_to_bronze_task = extract_sp500_profile_landing_to_bronze()
+
+    # Define task dependencies
+    extract_sp500_profiles_task >> load_sp500_profiles_to_s3_landing_task >> extract_sp500_profile_landing_to_bronze_task
+etl_sp500_profile_ingestion_landing_to_bronze_dag()
