@@ -34,12 +34,12 @@ def get_minio_s3_client():
         raise
 
 
-def load_data_profiles_to_s3(df, file_name, bucket_name, folder_name, file_format="parquet"):
+def load_data_to_raw_s3(df, file_name, bucket_name, folder_name, file_format):
     '''Uploads the given DataFrame to MinIO S3 in the specified format.'''
     s3 = get_minio_s3_client()
 
     # Construct the full file path in S3
-    file_name = f"{folder_name}/{file_name}_{datetime.now().strftime('%Y%m%d')}.{file_format}"
+    logger.info(f"{file_format.upper()} file will be uploaded to S3 bucket '{bucket_name}' with path '{file_name}'")
 
     # Convert DataFrame to the specified format and write to a buffer
     if file_format == "parquet":
@@ -52,9 +52,11 @@ def load_data_profiles_to_s3(df, file_name, bucket_name, folder_name, file_forma
         buffer = StringIO()
         df.to_csv(buffer, index=False)
 
+    directory_path = f"{folder_name}/{file_name}"
+    logger.info(f"Data converted to {file_format.upper()} format and stored in buffer. Ready to upload to S3 at path: {directory_path}")
     # Upload the buffer content to S3
     try:
-        s3.put_object(Bucket=bucket_name, Key=file_name, Body=buffer.getvalue())
-        logger.info(f"Data uploaded to S3 bucket '{bucket_name}' with path '{file_name}'")
+        s3.put_object(Bucket=bucket_name, Key=directory_path, Body=buffer.getvalue())
+        logger.info(f"Data uploaded to S3 bucket '{bucket_name}' with path '{directory_path}'")
     except NoCredentialsError:
         logger.error("AWS credentials not found. Please configure your AWS credentials.")
