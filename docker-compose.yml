@@ -96,6 +96,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-./airflow}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-./airflow}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-./airflow}/data:/opt/airflow/data
+    - ${AIRFLOW_PROJ_DIR:-./airflow}/great_expectations:/opt/airflow/great_expectations
     - ${AIRFLOW_PROJ_DIR:-./airflow}/tests:/opt/airflow/tests
     - ${AIRFLOW_PROJ_DIR:-./airflow}/src:/opt/airflow/src
     - ${AIRFLOW_PROJ_DIR:-./spark}/conf:/opt/spark/conf
@@ -380,13 +381,13 @@ services:
     build:
       context: ./spark
       dockerfile: Dockerfile
+    image: spark-prod:latest
     container_name: spark-master
     command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master
     healthcheck:
       <<: *healthcheck-common
       test: ['CMD', 'curl', '-f', 'http://localhost:8080']
     hostname: spark-master
-    image: spark-prod
     ports:
       - "8198:8080"
       - "7077:7077"

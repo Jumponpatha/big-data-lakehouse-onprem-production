@@ -38,8 +38,11 @@ def fetch_profile(symbol):
     try:
         ticker = yf.Ticker(symbol)
         info = ticker.info
-        info["symbol"] = symbol
         logger.info(f"Profile fetched for {symbol}")
+        info["symbol"] = symbol
+        # Log a warning if the profile data is empty or missing key fields
+        if info is None:
+            logger.warning(f"No valid data returned for {symbol}")
         return info
     except Exception as e:
         logger.error(f"Failed to fetch profile for {symbol}: {e}")

@@ -1,5 +1,3 @@
-import boto3
-from io import BytesIO
 import pandas as pd
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -36,7 +34,7 @@ default_args = {
 )
 
 # Define the DAG function
-def etl_iso_country_ingestion_landing_to_bronze_dag():
+def etl_iso_country_landing_to_bronze_dag():
 
     # TASK 1: Extract ISO Country profile data from source and add Ingested_Time column
     @task(task_id="extract_iso_country_data_task")
@@ -73,7 +71,7 @@ def etl_iso_country_ingestion_landing_to_bronze_dag():
     def load_iso_country_profiles_to_bronze():
         try:
             # Create Spark Session
-            spark = create_spark_session("Extract & Load ISO Country Profile Data to Bronze Zone")
+            spark = create_spark_session("ETL_ISO_Country_Landing_to_Bronze_DAG")
             logger.info("Starting loading of ISO Country profile data to bronze zone")
 
             file_name = f"country_iso_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
@@ -106,4 +104,4 @@ def etl_iso_country_ingestion_landing_to_bronze_dag():
     # Define task dependencies
     extract_iso_country_data_task >> load_iso_country_profiles_to_s3_landing_task >> load_iso_country_profiles_to_bronze_task
 
-etl_iso_country_ingestion_landing_to_bronze_dag()
+etl_iso_country_landing_to_bronze_dag()

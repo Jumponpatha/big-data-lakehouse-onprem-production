@@ -1,9 +1,7 @@
-import boto3
-from io import BytesIO
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from airflow.sdk import task, dag
-from src.extract.get_sp500_profile_data import extract_sp500_profile
+from src.extract.fetch_sp500_profile_data import extract_sp500_profile
 from src.s3.minio_s3 import load_data_to_raw_s3
 from src.load.load_to_iceberg_s3 import load_raw_data_landing_to_bronze
 from src.spark.spark_session import create_spark_session
@@ -36,7 +34,7 @@ default_args = {
 )
 
 # Define the DAG function
-def etl_sp500_profile_ingestion_landing_to_bronze_dag():
+def etl_sp500_profile_ingestion_to_bronze_dag():
 
     # TASK 1: Extract S&P 500 profile data from source and add Ingested_Time column
     @task(task_id="extract_sp500_profiles_task")
@@ -105,4 +103,4 @@ def etl_sp500_profile_ingestion_landing_to_bronze_dag():
 
     # Define task dependencies
     extract_sp500_profiles_task >> load_sp500_profiles_to_s3_landing_task >> load_sp500_profile_landing_to_bronze_task
-etl_sp500_profile_ingestion_landing_to_bronze_dag()
+etl_sp500_profile_landing_to_bronze_dag()
