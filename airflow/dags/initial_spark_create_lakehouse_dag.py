@@ -9,6 +9,7 @@ with DAG(
     catchup=False,
 ) as dag:
 
+    # Run SparkSubmitOperator
     spark_job = SparkSubmitOperator(
         task_id="run_initial_create_lakehouse_task",
         application="/opt/airflow/src/init/init_lakehouse.py",

@@ -23,7 +23,7 @@ def load_raw_data_landing_to_bronze(spark, s3_path, file_name, load_to_zone, cat
     logger.info(f"Extracting {file_name} data from landing zone at: {s3_directory}")
     df = spark.read.parquet(s3_directory, header=True, inferSchema=True)
 
-    load_to_lakehouse(df, catalog_name, schema_name, table_name, warehouse_iceberg_directory)
+    load_to_s3_lakehouse(df, catalog_name, schema_name, table_name, warehouse_iceberg_directory)
     logger.info(f"Finished loading {file_name} data to {load_to_zone} zone")
 
 # Additional function to load data to lakehouse without specifying the location (for silver and gold zones where we want to use default storage location configured in the catalog)
@@ -48,7 +48,7 @@ def load_to_lakehouse(df, catalog_name, schema_name, table_name, warehouse_icebe
         raise
 
 # Load data into S3 with Table-Format (Iceberg)
-def load_to_s3_lakehouse_dev(spark ,df, catalog_name, schema_name, table_name, warehouse_iceberg_directory):
+def load_to_s3_lakehouse(spark ,df, catalog_name, schema_name, table_name, warehouse_iceberg_directory, partition_col):
     '''
     Loads the given DataFrame to the lakehouse using Spark and Iceberg.
 
@@ -59,12 +59,24 @@ def load_to_s3_lakehouse_dev(spark ,df, catalog_name, schema_name, table_name, w
         - schema_name: The name of the schema (database) in the lakehouse where the table will be created
         - table_name: The name of the table to be created in the lakehouse
     '''
+    # Check the catalog_name.schema_name.table_name have exists or not
     if not spark.catalog.tableExists(f"{catalog_name}.{schema_name}.{table_name}"):
-        # if the table is not represent, the Spark will create a new table in S3 Lakehouse.
+        # If the table is not represent, the Spark will create a new table in S3 Lakehouse.
         try:
             df.writeTo(f"{catalog_name}.{schema_name}.{table_name}") \
                 .tableProperty("location", warehouse_iceberg_directory) \
+                .partitionedBy(partition_col) \
                 .createOrReplace()
+            logger.info(f"Successfully loaded data to '{schema_name}.{table_name}' in the lakehouse")
+        except Exception as e:
+            logger.error(f"Error loading data to '{schema_name}.{table_name}': {e}")
+            raise
+    # If the table is exists, the Spark will replace with partition with ingested datetime
+    else:
+        try:
+            # Overwrite only date partition / if partition not apppear then append
+            df.writeTo(f"{catalog_name}.{schema_name}.{table_name}") \
+                .overwritePartitions()
             logger.info(f"Successfully loaded data to '{schema_name}.{table_name}' in the lakehouse")
         except Exception as e:
             logger.error(f"Error loading data to '{schema_name}.{table_name}': {e}")

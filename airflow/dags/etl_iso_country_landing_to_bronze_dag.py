@@ -25,7 +25,7 @@ default_args = {
 
 # Define the DAG using the @dag decorator
 @dag(
-    dag_id="etl_iso_country_ingestion_landing_to_bronze_dag_dev",
+    dag_id="etl_iso_country_landing_to_bronze_dag_dev",
     schedule="30 21 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,

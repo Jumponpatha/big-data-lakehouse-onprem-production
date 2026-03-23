@@ -22,6 +22,8 @@ data/
 # Postgres volumes
 postgres-metastore-data/
 postgres-airflow-data/
+pg-metastore-data/
+pg-airflow-data
 
 # Python
 __pycache__/
@@ -50,3 +52,5 @@ notebooks/.Trash-185
 .Trash-*/
 
 airflow/backup
+
+backup

@@ -2,7 +2,8 @@
 set -e
 
 echo "Waiting for Postgres..."
-until pg_isready -h postgres-metastore -U hiveuser; do
+
+until pg_isready -h postgres-metastore -U ${HIVE_METASTORE_POSTGRES_USER} -d ${HIVE_METASTORE_POSTGRES_DB}; do
     sleep 2
 done
 
@@ -16,5 +17,4 @@ fi
 
 echo "Hive Metastore schema already exists or initialized"
 
-# IMPORTANT: do NOT start HiveServer2 here
 exec /opt/hive/bin/hive --service ${SERVICE_NAME}
