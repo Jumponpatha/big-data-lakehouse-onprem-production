@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from airflow.sdk import task, dag
-from src.extract.fetch_nasdaq_data import extract_nasdaq_profile
+from src.extract.api.fetch_nasdaq_data import extract_nasdaq_profile
 from src.s3.minio_s3 import load_data_to_raw_s3
 from src.load.load_to_iceberg_s3 import load_raw_data_landing_to_bronze
 from src.spark.spark_session import create_spark_session

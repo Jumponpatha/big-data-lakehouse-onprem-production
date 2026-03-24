@@ -88,9 +88,10 @@ def etl_currency_ingestion_landing_to_bronze_dag():
             schema_name = "bronze_db"
             table_name = "bronze_currency_profiles"
             load_to_zone = "bronze"
+            partition_col = "Ingested_Date"
 
             # Start loading the Currency profile data from the landing zone to the bronze zone in the lakehouse using Spark and Iceberg
-            load_raw_data_landing_to_bronze(spark, s3_path, file_name, load_to_zone, catalog_name, schema_name, table_name)
+            load_raw_data_landing_to_bronze(spark, s3_path, file_name, load_to_zone, catalog_name, schema_name, table_name, partition_col)
 
             # Stop the SparkSession
             spark.stop()
@@ -112,4 +113,5 @@ def etl_currency_ingestion_landing_to_bronze_dag():
     # Define task dependencies
     extract_currency_data_task >> load_currency_profiles_to_s3_landing_task >> load_currency_profiles_to_bronze_task
 
+# Call the DAG function to create the DAG
 etl_currency_ingestion_landing_to_bronze_dag()

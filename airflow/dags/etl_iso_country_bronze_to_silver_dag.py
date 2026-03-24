@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import json
 from airflow.sdk import task, dag
 from src.spark.spark_session import create_spark_session
-from src.load.load_to_iceberg_s3 import load_to_lakehouse
+from src.load.load_to_iceberg_s3 import load_to_s3_lakehouse
 from src.config.logger import get_logger
 from pyspark.sql.functions import col, lpad
 
@@ -101,7 +101,7 @@ def etl_iso_country_bronze_to_silver_dag():
             warehouse_iceberg_directory = f"s3a://lakehouse-silver-bucket/warehouse/{loaded_schema_name}/{loaded_table_name}/"
 
             # Load the transformed data to the Silver zone in the lakehouse using Spark and Iceberg
-            load_to_lakehouse(transformed_df, catalog_name, loaded_schema_name, loaded_table_name, warehouse_iceberg_directory)
+            load_to_s3_lakehouse(transformed_df, catalog_name, loaded_schema_name, loaded_table_name, warehouse_iceberg_directory)
             logger.info("Finished loading transformed ISO Country profile data to Silver zone")
         except Exception as e:
             logger.error(f"Spark job failed: {str(e)}")

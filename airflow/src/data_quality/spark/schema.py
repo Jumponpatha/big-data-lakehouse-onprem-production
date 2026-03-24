@@ -3,7 +3,7 @@ from src.config.logger import get_logger
 logger = get_logger(__name__)
 
 # Validate Column in Lakehouse
-def validate_column(df, columns: List):
+def validate_column(df, columns):
     # Normalize to list
     if isinstance(columns, str):
         columns = [columns]
