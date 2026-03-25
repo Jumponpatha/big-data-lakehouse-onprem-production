@@ -486,11 +486,13 @@ services:
       /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
       --properties-file /opt/spark/conf/spark-defaults.conf
     environment:
-      - SPARK_EVENTLOG_DIR=file:/opt/spark/logs
-      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:/opt/spark/logs
-      - AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
-      - AWS_REGION=us-east-1
+      SPARK_EVENTLOG_DIR: file:/opt/spark/logs
+      SPARK_HISTORY_OPTS: -Dspark.history.fs.logDirectory=file:/opt/spark/logs
+      AWS_ACCESS_KEY_ID: ${AWS_S3_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_S3_SECRET_ACCESS_KEY}
+      AWS_REGION: us-east-1
+      HIVE_METASTORE_POSTGRES_USER: ${HIVE_METASTORE_POSTGRES_USER}
+      HIVE_METASTORE_POSTGRES_PASSWORD: ${HIVE_METASTORE_POSTGRES_PASSWORD}
     ports:
       - "18189:18080"
     depends_on:
