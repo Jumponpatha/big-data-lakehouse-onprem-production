@@ -10,11 +10,11 @@
   </property>
   <property>
     <name>fs.s3a.access.key</name>
-    <value>minioadmin</value>
+    <value>${AWS_S3_ACCESS_KEY_ID}</value>
   </property>
   <property>
     <name>fs.s3a.secret.key</name>
-    <value>minioadmin</value>
+    <value>${AWS_S3_SECRET_ACCESS_KEY}</value>
   </property>
   <property>
     <name>fs.s3a.path.style.access</name>
@@ -39,5 +39,9 @@
   <property>
     <name>fs.s3a.fast.upload</name>
     <value>true</value>
+  </property>
+  <property>
+    <name>fs.s3a.connection.ssl.enabled</name>
+    <value>false</value>
   </property>
 </configuration>

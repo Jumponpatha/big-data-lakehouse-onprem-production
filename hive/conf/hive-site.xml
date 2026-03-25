@@ -13,11 +13,11 @@
     </property>
     <property>
         <name>javax.jdo.option.ConnectionUserName</name>
-        <value>hiveuser</value>
+        <value>${HIVE_METASTORE_POSTGRES_USER}</value>
     </property>
     <property>
         <name>javax.jdo.option.ConnectionPassword</name>
-        <value>hivepassword</value>
+        <value>${HIVE_METASTORE_POSTGRES_PASSWORD}</value>
     </property>
     <property>
         <name>hive.metastore.warehouse.dir</name>
@@ -33,11 +33,11 @@
     </property>
     <property>
         <name>fs.s3a.access.key</name>
-        <value>minioadmin</value>
+        <value>${AWS_S3_ACCESS_KEY_ID}</value>
     </property>
     <property>
         <name>fs.s3a.secret.key</name>
-        <value>minioadmin</value>
+        <value>${AWS_S3_SECRET_ACCESS_KEY}</value>
     </property>
     <property>
         <name>fs.s3a.path.style.access</name>

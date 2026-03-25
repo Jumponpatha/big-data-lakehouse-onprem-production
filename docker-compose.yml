@@ -486,11 +486,13 @@ services:
       /opt/spark/bin/spark-class org.apache.spark.deploy.history.HistoryServer
       --properties-file /opt/spark/conf/spark-defaults.conf
     environment:
-      - SPARK_EVENTLOG_DIR=file:/opt/spark/logs
-      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:/opt/spark/logs
-      - AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
-      - AWS_REGION=us-east-1
+      SPARK_EVENTLOG_DIR: file:/opt/spark/logs
+      SPARK_HISTORY_OPTS: -Dspark.history.fs.logDirectory=file:/opt/spark/logs
+      AWS_ACCESS_KEY_ID: ${AWS_S3_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_S3_SECRET_ACCESS_KEY}
+      AWS_REGION: us-east-1
+      HIVE_METASTORE_POSTGRES_USER: ${HIVE_METASTORE_POSTGRES_USER}
+      HIVE_METASTORE_POSTGRES_PASSWORD: ${HIVE_METASTORE_POSTGRES_PASSWORD}
     ports:
       - "18189:18080"
     depends_on:
@@ -572,8 +574,8 @@ services:
       SERVICE_OPTS: >-
         -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres-metastore:5432/metastore
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
-        -Djavax.jdo.option.ConnectionUserName=hiveuser
-        -Djavax.jdo.option.ConnectionPassword=hivepassword
+        -Djavax.jdo.option.ConnectionUserName=${HIVE_METASTORE_POSTGRES_USER}
+        -Djavax.jdo.option.ConnectionPassword=${HIVE_METASTORE_POSTGRES_PASSWORD}
         -Dhive.metastore.uris=thrift://hive-metastore:9083
         -Dhive.metastore.warehouse.dir=s3a://lakehouse-prod-bucket/warehouse/
         -Dfs.s3a.endpoint=http://minio:9000
@@ -581,6 +583,10 @@ services:
         -Dfs.s3a.secret.key=${AWS_S3_SECRET_ACCESS_KEY}
         -Dfs.s3a.path.style.access=true
         -Dfs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
+      AWS_S3_ACCESS_KEY_ID: ${AWS_S3_ACCESS_KEY_ID}
+      AWS_S3_SECRET_ACCESS_KEY: ${AWS_S3_SECRET_ACCESS_KEY}
+      HIVE_METASTORE_POSTGRES_USER: ${HIVE_METASTORE_POSTGRES_USER}
+      HIVE_METASTORE_POSTGRES_PASSWORD: ${HIVE_METASTORE_POSTGRES_PASSWORD}
     volumes:
       - ./hive/conf/hive-site.xml:/opt/hive/conf/hive-site.xml
       - ./hive/conf/core-site.xml:/opt/hive/conf/core-site.xml
