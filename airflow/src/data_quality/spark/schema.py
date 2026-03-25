@@ -4,13 +4,13 @@ logger = get_logger(__name__)
 
 # Validate Column in Lakehouse
 def validate_column(df, columns):
-    # Normalize to list
     if isinstance(columns, str):
         columns = [columns]
 
-    # Loop Check each Columns
-    for col in columns:
-        if col not in df.columns:
-            raise ValueError(f"Column '{col}' not found in DataFrame")
-        else:
-            raise logger.info(f"Column '{col}' are/is validate in DataFrame")
+    missing_cols = [col for col in columns if col not in df.columns]
+
+    if missing_cols:
+        logger.error(f"Missing columns: {missing_cols}")
+        raise ValueError(f"Missing columns in DataFrame: {missing_cols}")
+
+    logger.info(f"All columns validated successfully: {columns}")

@@ -26,7 +26,7 @@ default_args = {
 
 # Define the DAG using the @dag decorator
 @dag(
-    dag_id="etl_currency_ingestion_landing_to_bronze_dag_dev",
+    dag_id="etl_currency_landing_to_bronze_dag_dev",
     schedule="30 21 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
@@ -88,7 +88,7 @@ def etl_currency_ingestion_landing_to_bronze_dag():
             schema_name = "bronze_db"
             table_name = "bronze_currency_profiles"
             load_to_zone = "bronze"
-            partition_col = "Ingested_Date"
+            partition_col = "Ingested_Time"
 
             # Start loading the Currency profile data from the landing zone to the bronze zone in the lakehouse using Spark and Iceberg
             load_raw_data_landing_to_bronze(spark, s3_path, file_name, load_to_zone, catalog_name, schema_name, table_name, partition_col)
