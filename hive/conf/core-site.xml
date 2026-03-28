@@ -10,11 +10,11 @@
   </property>
   <property>
     <name>fs.s3a.access.key</name>
-    <value>${AWS_S3_ACCESS_KEY_ID}</value>
+    <value>minioadmin</value>
   </property>
   <property>
     <name>fs.s3a.secret.key</name>
-    <value>${AWS_S3_SECRET_ACCESS_KEY}</value>
+    <value>minioadmin</value>
   </property>
   <property>
     <name>fs.s3a.path.style.access</name>

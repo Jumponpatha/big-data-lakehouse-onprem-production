@@ -1,12 +1,12 @@
-import pandas as pd
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 import json
+import pandas as pd
+from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta
 from airflow.sdk import task, dag
-from src.s3.minio_s3 import load_data_to_raw_s3
-from src.load.load_to_iceberg_s3 import load_raw_data_landing_to_bronze
-from src.spark.spark_session import create_spark_session
 from src.config.logger import get_logger
+from src.s3.minio_s3 import load_data_to_raw_s3
+from src.spark.spark_session import create_spark_session
+from src.load.load_to_iceberg_s3 import load_raw_data_landing_to_bronze
 
 # Initialize logger
 logger = get_logger(__name__)
@@ -36,7 +36,6 @@ default_args = {
 
 # Define the DAG function
 def etl_currency_ingestion_landing_to_bronze_dag():
-
     # TASK 1: Extract ISO Country profile data from source and add Ingested_Time column
     @task(task_id="extract_currency_data_task")
     def extract_currency_data():
@@ -67,7 +66,8 @@ def etl_currency_ingestion_landing_to_bronze_dag():
 
         bucket_name = 'datalake-landing'
         folder_name = 'currency_profiles'
-        file_name = f"currency_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
+        datetime_format = datetime.now().strftime('%Y%m%d')
+        file_name = f"currency_profiles_{datetime_format}.parquet"
         file_format = "parquet"
 
         # Upload the Parquet file to S3
@@ -77,12 +77,16 @@ def etl_currency_ingestion_landing_to_bronze_dag():
     # TASK 3: Load the extracted Currency profile data from landing zone to bronze zone in the lakehouse using Spark and Iceberg
     @task(task_id="load_currency_profiles_to_bronze_task")
     def load_currency_profiles_to_bronze():
+        # Initial Variables
+        spark = None
         try:
             # Create Spark Session
             spark = create_spark_session("Extract & Load Currency Profile Data to Bronze Zone")
             logger.info("Starting loading of Currency profile data to bronze zone")
 
-            file_name = f"currency_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
+            # Inititalize Variables
+            datetime_format = datetime.now().strftime('%Y%m%d')
+            file_name = f"currency_profiles_{datetime_format}.parquet"
             s3_path = "datalake-landing/currency_profiles"
             catalog_name = "lakehouse_prod"
             schema_name = "bronze_db"

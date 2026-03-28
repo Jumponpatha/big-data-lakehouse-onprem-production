@@ -510,6 +510,9 @@ services:
     build:
       context: ./spark
       dockerfile: Dockerfile
+      args:
+        UID: ${UID}
+        GID: ${GID}
     container_name: jupyter
     image: spark-prod
     ports:
@@ -529,11 +532,11 @@ services:
     volumes:
       - ./notebooks:/home/spark/work
       - ./spark/logs:/opt/spark/logs
-      - ./data:/home/spark/work/data
       - ./spark/conf:/opt/spark/conf
     restart: always # In case of service/container crash, the container will restart.
     networks:
       - lakehouse_prod_net
+
 
   postgres-metastore:
     image: postgres:16
@@ -549,11 +552,11 @@ services:
     restart: unless-stopped
     stop_grace_period: 60s
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${HIVE_METASTORE_POSTGRES_USER} -d ${HIVE_METASTORE_POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ${HIVE_METASTORE_POSTGRES_USER} -d ${HIVE_METASTORE_POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 60s
+      start_period: 90s
     ports:
       - "5432:5432"
 
@@ -572,19 +575,17 @@ services:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
       SERVICE_OPTS: >-
-        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres-metastore:5432/metastore
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres-metastore:5432/${HIVE_METASTORE_POSTGRES_DB}
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
         -Djavax.jdo.option.ConnectionUserName=${HIVE_METASTORE_POSTGRES_USER}
         -Djavax.jdo.option.ConnectionPassword=${HIVE_METASTORE_POSTGRES_PASSWORD}
-        -Dhive.metastore.uris=thrift://hive-metastore:9083
-        -Dhive.metastore.warehouse.dir=s3a://lakehouse-prod-bucket/warehouse/
-        -Dfs.s3a.endpoint=http://minio:9000
         -Dfs.s3a.access.key=${AWS_S3_ACCESS_KEY_ID}
         -Dfs.s3a.secret.key=${AWS_S3_SECRET_ACCESS_KEY}
         -Dfs.s3a.path.style.access=true
         -Dfs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem
       AWS_S3_ACCESS_KEY_ID: ${AWS_S3_ACCESS_KEY_ID}
       AWS_S3_SECRET_ACCESS_KEY: ${AWS_S3_SECRET_ACCESS_KEY}
+      HIVE_METASTORE_POSTGRES_DB: ${HIVE_METASTORE_POSTGRES_DB}
       HIVE_METASTORE_POSTGRES_USER: ${HIVE_METASTORE_POSTGRES_USER}
       HIVE_METASTORE_POSTGRES_PASSWORD: ${HIVE_METASTORE_POSTGRES_PASSWORD}
     volumes:
@@ -724,11 +725,29 @@ services:
   #   networks:
   #     - lakehouse_prod_net
   #   restart: unless-stopped
+  dremio:
+    image: dremio/dremio-oss:25.2
+    container_name: dremio
+    ports:
+      - 9047:9047
+      - 31010:31010
+      - 45678:45678
+    volumes:
+      - dremio:/opt/dremio/data
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    networks:
+      - lakehouse_prod_net
 
 networks:
   lakehouse_prod_net:
     driver: bridge
 
 volumes:
-  postgres-metastore-data:
-  postgres-airflow-data:
+  pg-metastore-data:
+  pg-airflow-data:
+  dremio:

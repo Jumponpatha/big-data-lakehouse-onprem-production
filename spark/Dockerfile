@@ -64,7 +64,6 @@ ENV SPARK_HOME=/opt/spark \
     PYSPARK_PYTHON=python3 \
     PYSPARK_DRIVER_PYTHON=python3
 
-
 # Create workspace & set permissions
 RUN mkdir -p /home/spark/work && \
     chown -R spark:spark /home/spark && \
