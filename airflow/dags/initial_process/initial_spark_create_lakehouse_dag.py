@@ -10,8 +10,14 @@ with DAG(
 ) as dag:
 
     # Run SparkSubmitOperator
-    spark_job = SparkSubmitOperator(
-        task_id="run_initial_create_lakehouse_task",
-        application="/opt/airflow/src/init/init_lakehouse.py",
+    Initial_create_lakehouse = SparkSubmitOperator(
+        task_id="run_initial_create_database_task",
+        application="/opt/airflow/src/init/init_databases.py",
+        conn_id="spark_default",
+    )
+
+    Initial_create_table = SparkSubmitOperator(
+        task_id="run_initial_create_tables_task",
+        application="/opt/airflow/src/init/init_tables.py",
         conn_id="spark_default",
     )

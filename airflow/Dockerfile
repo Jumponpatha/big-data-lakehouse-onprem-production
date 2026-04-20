@@ -36,13 +36,12 @@ USER airflow
 # Python dependencies
 COPY requirements.txt /tmp/requirements.txt
 
+# Install Airflow providers and Spark dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir --force-reinstall \
-        numpy==1.26.4 \
-        pandas==2.1.4 \
-        pyarrow==17.0.0 && \
-    pip install --no-cache-dir -r /tmp/requirements.txt
-
+    pip install --no-cache-dir pyspark==3.5.6 && \
+    pip install --no-cache-dir apache-airflow-providers-apache-spark==4.1.0 && \
+    pip install --no-cache-dir psycopg2-binary && \
+    PIP_PREFER_BINARY=1 pip install --no-cache-dir -r /tmp/requirements.txt
 COPY dags/ /opt/airflow/dags
 
 WORKDIR /opt/airflow

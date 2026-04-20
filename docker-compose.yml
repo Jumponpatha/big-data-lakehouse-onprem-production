@@ -82,13 +82,14 @@ x-airflow-common:
     AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    _PIP_ADDITIONAL_REQUIREMENTS: ''
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
     PYTHONPATH: /opt/airflow
     AWS_ACCESS_KEY_ID: ${AWS_S3_ACCESS_KEY_ID}
     AWS_SECRET_ACCESS_KEY: ${AWS_S3_SECRET_ACCESS_KEY}
     AWS_REGION: us-east-1
+    SPARK_API_MODE: classic
   volumes:
     - ${AIRFLOW_PROJ_DIR:-./airflow}:/opt/airflow
     - ${AIRFLOW_PROJ_DIR:-./airflow}/dags:/opt/airflow/dags
@@ -401,6 +402,8 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
       - AWS_REGION=us-east-1
+      - PYSPARK_PYTHON=/usr/bin/python3.11
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.11
     networks:
       - lakehouse_prod_net
 
@@ -413,9 +416,12 @@ services:
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_MEMORY=2g
       - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_API_MOE=classic
       - AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
       - AWS_REGION=us-east-1
+      - PYSPARK_PYTHON=/usr/bin/python3.11
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.11
     depends_on:
       - spark-master
     volumes:
@@ -441,6 +447,8 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}
       - AWS_REGION=us-east-1
+      - PYSPARK_PYTHON=/usr/bin/python3.11
+      - PYSPARK_DRIVER_PYTHON=/usr/bin/python3.11
     depends_on:
       - spark-master
     volumes:
@@ -537,7 +545,7 @@ services:
     networks:
       - lakehouse_prod_net
 
-
+# Hive Metastore Services
   postgres-metastore:
     image: postgres:16
     container_name: postgres-metastore
@@ -601,6 +609,7 @@ services:
       retries: 10
       start_period: 120s
 
+  # MinIO Services
   minio:
     image: minio/minio:latest
     container_name: minio-s3
@@ -641,10 +650,26 @@ services:
     depends_on:
       minio:
         condition: service_healthy
-    entrypoint: ["/bin/sh", "/s3-entrypoint.sh"]
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...' &&
+      until mc alias set minio-prod http://minio:9000 $AWS_S3_ACCESS_KEY_ID $AWS_S3_SECRET_ACCESS_KEY; do
+        echo 'Retrying...'; sleep 2;
+      done &&
+      echo 'Creating buckets...' &&
+      mc mb minio-prod/lakehouse-prod-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-dev-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-test-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-gold-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-silver-bucket --ignore-existing &&
+      mc mb minio-prod/lakehouse-bronze-bucket --ignore-existing &&
+      mc mb minio-prod/datalake-landing --ignore-existing &&
+      echo 'Buckets created:' &&
+      mc ls minio-prod &&
+      echo 'Done.'
+      "
     volumes:
       - ./minio/scripts/s3-entrypoint.sh:/s3-entrypoint.sh
-
     networks:
       - lakehouse_prod_net
 
@@ -686,6 +711,7 @@ services:
   #
   #   - lakehouse_prod_net
 
+  # Trino Services
   trino:
     image: trinodb/trino:410
     container_name: trino
@@ -725,29 +751,12 @@ services:
   #   networks:
   #     - lakehouse_prod_net
   #   restart: unless-stopped
-  dremio:
-    image: dremio/dremio-oss:25.2
-    container_name: dremio
-    ports:
-      - 9047:9047
-      - 31010:31010
-      - 45678:45678
-    volumes:
-      - dremio:/opt/dremio/data
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-    networks:
-      - lakehouse_prod_net
-
+    
 networks:
   lakehouse_prod_net:
     driver: bridge
 
+# Volumes for persistent data storage.
 volumes:
   pg-metastore-data:
   pg-airflow-data:
-  dremio:

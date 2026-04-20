@@ -27,7 +27,11 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PYSPARK_PYTHON=python3.11
+ENV PYSPARK_DRIVER_PYTHON=python3.11
+ENV SPARK_HOME=/opt/spark
 
 # Download Jars
 RUN mkdir -p /opt/spark/jars && \
@@ -58,11 +62,6 @@ RUN pip install --no-cache-dir \
 
 # Add Jupyter kernel globally (NOT --user!)
 RUN python3 -m ipykernel install --name spark-python --display-name "Spark Py3"
-
-# Environment variables
-ENV SPARK_HOME=/opt/spark \
-    PYSPARK_PYTHON=python3 \
-    PYSPARK_DRIVER_PYTHON=python3
 
 # Create workspace & set permissions
 RUN mkdir -p /home/spark/work && \

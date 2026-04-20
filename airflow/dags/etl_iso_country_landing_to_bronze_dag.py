@@ -35,6 +35,14 @@ default_args = {
 
 # Define the DAG function
 def etl_iso_country_landing_to_bronze_dag():
+    '''
+    # ETL DAG to extract, transform, and load ISO Country profile data from the landing zone to the bronze zone in the lakehouse.
+
+    The DAG consists of the following tasks:
+    1. Extract ISO Country profile data from the source and add an Ingested_Time column.
+    2. Load the extracted ISO Country profile data to local storage in Parquet format and upload it to the S3 landing zone.
+    3. Load the extracted ISO Country profile data from the landing zone to the bronze zone in the lakehouse using Spark and Iceberg.
+    '''
 
     # TASK 1: Extract ISO Country profile data from source and add Ingested_Time column
     @task(task_id="extract_iso_country_data_task")

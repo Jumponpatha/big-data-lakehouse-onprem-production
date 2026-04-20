@@ -23,7 +23,7 @@ def create_spark_session(app_name: str) -> SparkSession:
     try:
         spark = (
             SparkSession.builder
-            .master(master)
+            .master("spark://spark-master:7077")
             .appName(app_name)
             .config("spark.sql.extensions", "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions")
             .config(f"spark.sql.catalog.{catalog_name}","org.apache.iceberg.spark.SparkCatalog")

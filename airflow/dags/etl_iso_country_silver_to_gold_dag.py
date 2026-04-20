@@ -1,12 +1,9 @@
 import pandas as pd
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-import json
 from airflow.sdk import task, dag
 from src.spark.spark_session import create_spark_session
 from src.load.load_to_iceberg_s3 import load_to_s3_lakehouse
 from src.config.logger import get_logger
-from pyspark.sql.functions import col, lpad
 
 # Initialize logger
 logger = get_logger(__name__)

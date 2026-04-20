@@ -26,8 +26,8 @@ default_args = {
 
 # Define the DAG using the @dag decorator
 @dag(
-    dag_id="etl_currency_landing_to_bronze_dag_dev",
-    schedule="30 21 * * *",
+    dag_id="etl_currency_landing_to_bronze_dag",
+    schedule="30 8 * * 5", # Every 08:30 on Friday
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["ETL", "Currency" , "Bronze", "Landing"],
@@ -36,12 +36,21 @@ default_args = {
 
 # Define the DAG function
 def etl_currency_ingestion_landing_to_bronze_dag():
-    # TASK 1: Extract ISO Country profile data from source and add Ingested_Time column
+    '''
+    # ETL DAG to extract, transform, and load Currency profile data from the landing zone to the bronze zone in the lakehouse.
+
+    The DAG consists of the following tasks:
+    1. Extract Currency profile data from the source and add an Ingested_Time column.
+    2. Load the extracted Currency profile data to local storage in Parquet format and upload it to the S3 landing zone.
+    3. Load the extracted Currency profile data from the landing zone to the bronze zone in the lakehouse using Spark and Iceberg.
+    '''
+
+    # TASK 1: Extract Currency profile data from source and add Ingested_Time column
     @task(task_id="extract_currency_data_task")
     def extract_currency_data():
+
         logger.info("Starting extraction of Currency profile data")
         # Extract Currency profile data from source and add Ingested_Time column
-        # extracted_df = pd.read_json("/opt/airflow/data/source/COMMON_CURRENCY.json", encoding='unicode_escape')
         ingested_time = datetime.now(ZoneInfo("Asia/Bangkok"))
         with open("/opt/airflow/data/source/COMMON_CURRENCY.json") as f:
             data = json.load(f)
