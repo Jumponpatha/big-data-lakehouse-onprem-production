@@ -69,7 +69,7 @@ def load_raw_data_landing_to_bronze(spark, s3_path, file_name, load_to_zone, cat
     logger.info(f"Extracting {file_name} data from landing zone at: {s3_directory}")
     df = spark.read.parquet(s3_directory)
 
-    append_data_to_iceberg_bronze(spark ,df, catalog_name, schema_name, table_name, warehouse_iceberg_directory, partition_col)
+    overwrite_partition_to_s3_lakehouse(spark ,df, catalog_name, schema_name, table_name, warehouse_iceberg_directory, partition_col)
     logger.info(f"Finished loading {file_name} data to {load_to_zone} zone")
 
 # Load data with append from the landing zone in Bronze Zone S3 to the medallion architecture zone in the lakehouse using Spark and Iceberg.
@@ -194,8 +194,7 @@ def overwrite_partition_to_s3_lakehouse(spark ,df, catalog_name, schema_name, ta
         logger.info(f"Data '{schema_name}.{table_name}' is existing, then append/replace the partition column/columns.")
         try:
             # Overwrite only date partition / if partition not apppear then append
-            df.writeTo(f"{catalog_name}.{schema_name}.{table_name}") \
-                .overwritePartitions()
+            df.write.mode("overwrite").partitionBy(partition_col).saveAsTable(f"{catalog_name}.{schema_name}.{table_name}")
             logger.info(f"Successfully loaded data to '{schema_name}.{table_name}' in the lakehouse")
         except Exception as e:
             logger.error(f"Error loading data to '{schema_name}.{table_name}': {e}")

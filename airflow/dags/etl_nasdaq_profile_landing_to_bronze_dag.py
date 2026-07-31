@@ -70,6 +70,7 @@ def etl_nasdaq_profile_landing_to_bronze_dag():
             spark = create_spark_session("Extract & Load NASDAQ Profile Data to Bronze Zone")
             logger.info("Starting loading of NASDAQ profile data to bronze zone")
 
+            # Define S3 path, file name, and target table details for loading to the bronze zone
             file_name = f"nasdaq_profiles_{datetime.now().strftime('%Y%m%d')}.parquet"
             s3_path = "datalake-landing/nasdaq_profiles"
             catalog_name = "lakehouse_prod"

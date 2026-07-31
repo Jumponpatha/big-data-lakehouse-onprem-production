@@ -61,8 +61,8 @@ def etl_iso_country_bronze_to_silver_dag():
             df = df.cache()
             # Drop duplicates if any in Yahoo Finance API
             df = df.dropDuplicates()
-            dedup_count = df.count()
-            logger.info(f"Number of rows after dropping duplicates: {dedup_count}")
+            deduplicated_count = df.count()
+            logger.info(f"Number of rows after dropping duplicates: {deduplicated_count}")
 
             # Transform the data by renaming columns, adding new columns, and creating a surrogate key
             logger.info("Transforming ISO Country profile data by renaming columns, adding new columns, and creating a surrogate key")
